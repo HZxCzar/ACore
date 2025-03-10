@@ -1,5 +1,4 @@
 use core::sync::atomic::{AtomicPtr, Ordering};
-use bitflags::bitflags;
 
 // macro_rules! wait_for {
 //     ($condition:expr) => {

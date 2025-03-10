@@ -4,6 +4,27 @@ use riscv::register::mscratch;
 use riscv::register::mstatus::MPP;
 use riscv::register::{mcause, mepc, mie, mstatus, mtvec, pmpaddr0, pmpcfg0, satp, sie};
 
+use crate::config::MACHINE_STACK_SIZE;
+use crate::trap::TrapContext;
+struct MachineStack {
+    data: [u8; MACHINE_STACK_SIZE],
+}
+static MACHINE_STACK: MachineStack = MachineStack {
+    data: [0; MACHINE_STACK_SIZE],
+};
+impl MachineStack {
+    fn get_sp(&self) -> usize {
+        self.data.as_ptr() as usize + MACHINE_STACK_SIZE
+    }
+    pub fn push_context(&self, cx: TrapContext) -> &'static mut TrapContext {
+        let cx_ptr = (self.get_sp() - core::mem::size_of::<TrapContext>()) as *mut TrapContext;
+        unsafe {
+            *cx_ptr = cx;
+        }
+        unsafe { cx_ptr.as_mut().unwrap() }
+    }
+}
+
 global_asm!(include_str!("trap.S"));
 unsafe extern "C" {
     unsafe fn rust_main() -> !; // S 模式入口点
@@ -52,7 +73,7 @@ pub unsafe fn m_mode_init() -> ! {
 
         mie::set_mtimer();
 
-        asm!("csrw mscratch, {}", in(reg) 0x80200000_usize);
+        asm!("csrw mscratch, {}", in(reg) MACHINE_STACK.get_sp());
     }
 
     // 执行 mret 指令切换到 S 模式

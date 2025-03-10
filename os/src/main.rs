@@ -1,13 +1,23 @@
 #![no_std]
 #![no_main]
+#![feature(alloc_error_handler)]
+
+extern crate alloc;
+
+#[macro_use]
+extern crate bitflags;
+
+#[path = "boards/qemu.rs"]
+mod board;
 
 #[macro_use]
 mod console;
 mod lang_items;
 mod uart;
 mod timer;
-// mod batch;
-pub mod mmod;
+mod mm;
+mod mmod;
+mod config;
 pub mod trap;
 pub mod sync;
 // pub mod syscall;
@@ -51,8 +61,8 @@ pub fn rust_main() -> ! {
     uart_init();
     // trap::init();
     // println!("Hello, world!");
-    while(true){
+    // while(true){
 
-    }
+    // }
     panic!("|program finished|");
 }
