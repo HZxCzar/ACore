@@ -80,7 +80,7 @@ pub fn trap_handler_m(cx: &mut TrapContext) -> &mut TrapContext {
         }
         mcause::Trap::Interrupt(Interrupt::MachineTimer) => {
             set_next_trigger();
-            panic!("|m_timer_interrupt|");
+            println!("|m_timer_interrupt|");
             // cx.x[10] = syscall(cx.x[17], [cx.x[10], cx.x[11], cx.x[12]]) as usize;
         }
         _ => {

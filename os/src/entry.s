@@ -1,9 +1,8 @@
- # os/src/entry.asm
     .section .text.entry
     .globl _start
 _start:
     la sp, boot_stack_top
-    call mmode_start
+    call m_mode_init
 
     .section .bss.stack
     .globl boot_stack_lower_bound

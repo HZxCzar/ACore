@@ -59,6 +59,7 @@ pub extern "C" fn mmode_start() -> ! {
 pub fn rust_main() -> ! {
     clear_bss();
     uart_init();
+    mm::init();
     // trap::init();
     // println!("Hello, world!");
     // while(true){

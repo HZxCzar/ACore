@@ -236,6 +236,7 @@ impl MemorySet {
             satp::write(satp);
             asm!("sfence.vma");
         }
+        println!("activate memory set end");
     }
     pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
         self.page_table.translate(vpn)
