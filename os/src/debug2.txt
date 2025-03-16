@@ -1,0 +1,103 @@
+0x80001c36 <os::console::<impl core::fmt::Write for os::uart::Uart>::write_str+138>: ld      a4,40(a0)
+   0x80001c38 <os::console::<impl core::fmt::Write for os::uart::Uart>::write_str+140>: lbu     a4,0(a4)
+   0x80001c3c <os::console::<impl core::fmt::Write for os::uart::Uart>::write_str+144>: andi    a4,a4,32
+   0x80001c40 <os::console::<impl core::fmt::Write for os::uart::Uart>::write_str+148>:
+    beqz        a4,0x80001c32 <os::console::<impl core::fmt::Write for os::uart::Uart>::write_str+134>
+   0x80001c42 <os::console::<impl core::fmt::Write for os::uart::Uart>::write_str+150>:
+    j   0x80001bc4 <os::console::<impl core::fmt::Write for os::uart::Uart>::write_str+24>
+   0x80001c44 <os::console::<impl core::fmt::Write for os::uart::Uart>::write_str+152>: ld      ra,8(sp)
+   0x80001c46 <os::console::<impl core::fmt::Write for os::uart::Uart>::write_str+154>: ld      s0,0(sp)
+   0x80001c48 <os::console::<impl core::fmt::Write for os::uart::Uart>::write_str+156>: addi    sp,sp,16
+   0x80001c4a <os::console::<impl core::fmt::Write for os::uart::Uart>::write_str+158>: li      a0,0
+   0x80001c4c <os::console::<impl core::fmt::Write for os::uart::Uart>::write_str+160>: ret
+   0x80001c4e <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt>:        addi    sp,sp,-144
+   0x80001c50 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+2>:      sd      ra,136(sp)
+   0x80001c52 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+4>:      sd      s0,128(sp)
+--Type <RET> for more, q to quit, c to continue without paging--c
+   0x80001c54 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+6>:      addi    s0,sp,144
+   0x80001c56 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+8>:      auipc   a2,0x3
+   0x80001c5a <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+12>:     li      a6,2
+   0x80001c5c <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+14>:     li      a4,1
+   0x80001c5e <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+16>:     li      a5,3
+   0x80001c60 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+18>:     auipc   a3,0x4
+   0x80001c64 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+22>:     addi    a7,s0,-72
+   0x80001c68 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+26>:     sb      a5,-24(s0)
+   0x80001c6c <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+30>:     addi    a5,s0,-88
+   0x80001c70 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+34>:     addi    a2,a2,-42
+   0x80001c74 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+38>:     sd      a0,-88(s0)
+   0x80001c78 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+42>:     sd      a2,-80(s0)
+   0x80001c7c <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+46>:     slli    a0,a4,0x22
+   0x80001c80 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+50>:     addi    a0,a0,32
+   0x80001c84 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+54>:     sd      a6,-72(s0)
+   0x80001c88 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+58>:     sd      a6,-56(s0)
+   0x80001c8c <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+62>:     sd      zero,-40(s0)
+   0x80001c90 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+66>:     sd      a0,-32(s0)
+   0x80001c94 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+70>:     ld      a0,48(a1)
+   0x80001c96 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+72>:     ld      a1,56(a1)
+   0x80001c98 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+74>:     addi    a2,a3,1744
+   0x80001c9c <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+78>:     sd      a7,-104(s0)
+   0x80001ca0 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+82>:     sd      a4,-96(s0)
+   0x80001ca4 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+86>:     sd      a2,-136(s0)
+   0x80001ca8 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+90>:     sd      a4,-128(s0)
+   0x80001cac <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+94>:     sd      a5,-120(s0)
+   0x80001cb0 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+98>:     sd      a4,-112(s0)
+   0x80001cb4 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+102>:    addi    a2,s0,-136
+   0x80001cb8 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+106>:    auipc   ra,0x2
+   0x80001cbc <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+110>:    jalr    1532(ra)
+   0x80001cc0 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+114>:    ld      ra,136(sp)
+   0x80001cc2 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+116>:    ld      s0,128(sp)
+   0x80001cc4 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+118>:    addi    sp,sp,144
+   0x80001cc6 <<os::mm::address::VirtPageNum as core::fmt::Debug>::fmt+120>:    ret
+   0x80001cc8 <os::mmod::m_mode_init>:  addi    sp,sp,-16
+   0x80001cca <os::mmod::m_mode_init+2>:        sd      ra,8(sp)
+   0x80001ccc <os::mmod::m_mode_init+4>:        sd      s0,0(sp)
+   0x80001cce <os::mmod::m_mode_init+6>:        addi    s0,sp,16
+   0x80001cd0 <os::mmod::m_mode_init+8>:        li      a1,0
+   0x80001cd2 <os::mmod::m_mode_init+10>:       csrr    a2,mstatus
+   0x80001cd6 <os::mmod::m_mode_init+14>:       lui     a0,0xffffe
+   0x80001cd8 <os::mmod::m_mode_init+16>:       addiw   a3,a0,2047
+   0x80001cdc <os::mmod::m_mode_init+20>:       and     a2,a2,a3
+   0x80001cde <os::mmod::m_mode_init+22>:       li      a3,1
+   0x80001ce0 <os::mmod::m_mode_init+24>:       slli    a3,a3,0xb
+   0x80001ce2 <os::mmod::m_mode_init+26>:       or      a2,a2,a3
+   0x80001ce4 <os::mmod::m_mode_init+28>:       auipc   a3,0x1
+   0x80001ce8 <os::mmod::m_mode_init+32>:       csrw    mstatus,a2
+   0x80001cec <os::mmod::m_mode_init+36>:       li      a2,512
+   0x80001cf0 <os::mmod::m_mode_init+40>:       addi    a3,a3,38
+   0x80001cf4 <os::mmod::m_mode_init+44>:       csrw    mepc,a3
+   0x80001cf8 <os::mmod::m_mode_init+48>:       li      a3,32
+   0x80001cfc <os::mmod::m_mode_init+52>:       csrw    satp,a1
+   0x80001d00 <os::mmod::m_mode_init+56>:       lui     a1,0x10
+   0x80001d02 <os::mmod::m_mode_init+58>:       addiw   a1,a1,-1
+   0x80001d04 <os::mmod::m_mode_init+60>:       csrw    medeleg,a1
+   0x80001d08 <os::mmod::m_mode_init+64>:       csrw    mideleg,a1
+   0x80001d0c <os::mmod::m_mode_init+68>:       csrs    sie,a2
+   0x80001d10 <os::mmod::m_mode_init+72>:       li      a1,2
+   0x80001d12 <os::mmod::m_mode_init+74>:       csrs    sie,a3
+   0x80001d16 <os::mmod::m_mode_init+78>:       li      a2,-1
+   0x80001d18 <os::mmod::m_mode_init+80>:       csrs    sie,a1
+   0x80001d1c <os::mmod::m_mode_init+84>:       li      a1,15
+   0x80001d1e <os::mmod::m_mode_init+86>:       srli    a2,a2,0xa
+   0x80001d20 <os::mmod::m_mode_init+88>:       csrw    pmpaddr0,a2
+   0x80001d24 <os::mmod::m_mode_init+92>:       lui     a2,0x200c
+   0x80001d28 <os::mmod::m_mode_init+96>:       csrw    pmpcfg0,a1
+   0x80001d2c <os::mmod::m_mode_init+100>:      ld      a1,-8(a2)
+   0x80001d30 <os::mmod::m_mode_init+104>:      lui     a2,0x989
+   0x80001d34 <os::mmod::m_mode_init+108>:      addiw   a2,a2,1664
+   0x80001d38 <os::mmod::m_mode_init+112>:      add     a1,a1,a2
+   0x80001d3a <os::mmod::m_mode_init+114>:      lui     a2,0x2004
+   0x80001d3e <os::mmod::m_mode_init+118>:      sd      a1,0(a2)
+   0x80001d40 <os::mmod::m_mode_init+120>:      lui     a1,0xfffff
+   0x80001d42 <os::mmod::m_mode_init+122>:      li      a2,8
+   0x80001d44 <os::mmod::m_mode_init+124>:      csrw    mtvec,a1
+   0x80001d48 <os::mmod::m_mode_init+128>:      csrs    mstatus,a2
+   0x80001d4c <os::mmod::m_mode_init+132>:      li      a1,128
+   0x80001d50 <os::mmod::m_mode_init+136>:      csrs    mie,a1
+   0x80001d54 <os::mmod::m_mode_init+140>:      csrw    mscratch,a0
+   0x80001d58 <os::mmod::m_mode_init+144>:      mret
+   0x80001d5c <os::mmod::m_mode_init+148>:      unimp
+   0x80001d5e <OUTLINED_FUNCTION_0>:    addi    sp,sp,-32
+   0x80001d60 <OUTLINED_FUNCTION_0+2>:  sd      ra,24(sp)
+   0x80001d62 <OUTLINED_FUNCTION_0+4>:  sd      s0,16(sp)
+   0x80001d64 <OUTLINED_FUNCTION_0+6>:  addi    s0,sp,32
+   0x80001d66 <OUTLINED_FUNCTION_0+8>:  mv      a6,a4

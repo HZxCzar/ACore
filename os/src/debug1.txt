@@ -1,0 +1,101 @@
+0x800024ca <rust_begin_unwind>:      addi    sp,sp,-96
+   0x800024cc <rust_begin_unwind+2>:    sd      ra,88(sp)
+   0x800024ce <rust_begin_unwind+4>:    sd      s0,80(sp)
+   0x800024d0 <rust_begin_unwind+6>:    addi    s0,sp,96
+   0x800024d2 <rust_begin_unwind+8>:    sd      a0,-96(s0)
+   0x800024d6 <rust_begin_unwind+12>:   addi    a6,s0,-96
+   0x800024da <rust_begin_unwind+16>:   auipc   a0,0x0
+   0x800024de <rust_begin_unwind+20>:   auipc   a2,0x4
+   0x800024e2 <rust_begin_unwind+24>:   li      a7,2
+   0x800024e4 <rust_begin_unwind+26>:   addi    a4,s0,-40
+   0x800024e8 <rust_begin_unwind+30>:   li      a5,1
+   0x800024ea <rust_begin_unwind+32>:   auipc   a1,0x17
+   0x800024ee <rust_begin_unwind+36>:   addi    a3,a0,1066
+   0x800024f2 <rust_begin_unwind+40>:   addi    a2,a2,490
+   0x800024f6 <rust_begin_unwind+44>:   addi    a0,a1,-1258
+--Type <RET> for more, q to quit, c to continue without paging--c
+   0x800024fa <rust_begin_unwind+48>:   sd      a6,-40(s0)
+   0x800024fe <rust_begin_unwind+52>:   sd      a3,-32(s0)
+   0x80002502 <rust_begin_unwind+56>:   ld      a1,0(a0)
+   0x80002504 <rust_begin_unwind+58>:   sd      a2,-88(s0)
+   0x80002508 <rust_begin_unwind+62>:   sd      a7,-80(s0)
+   0x8000250c <rust_begin_unwind+66>:   sd      a4,-72(s0)
+   0x80002510 <rust_begin_unwind+70>:   sd      a5,-64(s0)
+   0x80002514 <rust_begin_unwind+74>:   sd      zero,-56(s0)
+   0x80002518 <rust_begin_unwind+78>:   beqz    a1,0x80002532 <rust_begin_unwind+104>
+   0x8000251a <rust_begin_unwind+80>:   ld      a0,8(a0)
+   0x8000251c <rust_begin_unwind+82>:   auipc   a1,0x4
+   0x80002520 <rust_begin_unwind+86>:   addi    a1,a1,-676
+   0x80002524 <rust_begin_unwind+90>:   addi    a2,s0,-88
+   0x80002528 <rust_begin_unwind+94>:   auipc   ra,0x2
+   0x8000252c <rust_begin_unwind+98>:   jalr    -628(ra)
+   0x80002530 <rust_begin_unwind+102>:  bnez    a0,0x80002540 <rust_begin_unwind+118>
+   0x80002532 <rust_begin_unwind+104>:  lui     a0,0x5
+   0x80002534 <rust_begin_unwind+106>:  addi    a0,a0,1365
+   0x80002538 <rust_begin_unwind+110>:  lui     a1,0x100
+   0x8000253c <rust_begin_unwind+114>:  sw      a0,0(a1)
+   0x8000253e <rust_begin_unwind+116>:  j       0x8000253e <rust_begin_unwind+116>
+   0x80002540 <rust_begin_unwind+118>:  auipc   a0,0x4
+   0x80002544 <rust_begin_unwind+122>:  auipc   a2,0x4
+   0x80002548 <rust_begin_unwind+126>:  auipc   a4,0x4
+   0x8000254c <rust_begin_unwind+130>:  li      a1,43
+   0x80002550 <rust_begin_unwind+134>:  addi    a0,a0,-632
+   0x80002554 <rust_begin_unwind+138>:  addi    a3,a2,-668
+   0x80002558 <rust_begin_unwind+142>:  addi    a4,a4,-576
+   0x8000255c <rust_begin_unwind+146>:  addi    a2,s0,-17
+   0x80002560 <rust_begin_unwind+150>:  auipc   ra,0x2
+   0x80002564 <rust_begin_unwind+154>:  jalr    -1912(ra)
+   0x80002568 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc>:       addi    sp,sp,-96
+   0x8000256a <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+2>:     sd      ra,88(sp)
+   0x8000256c <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+4>:     sd      s0,80(sp)
+   0x8000256e <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+6>:     addi    s0,sp,96
+   0x80002570 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+8>:     andi    a4,a0,-4
+   0x80002574 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+12>:    li      a3,1
+   0x80002576 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+14>:    amoor.w.aq      a5,a3,(a4)
+   0x8000257a <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+18>:    andi    a5,a5,255
+   0x8000257e <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+22>:    bnez    a5,0x80002586 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+30>
+   0x80002580 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+24>:    j       0x8000258e <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+38>
+   0x80002582 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+26>:    fence   w,unknown
+   0x80002586 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+30>:    lb      a5,0(a0)
+   0x8000258a <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+34>:    bnez    a5,0x80002582 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+26>
+   0x8000258c <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+36>:    j       0x80002576 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+14>
+   0x8000258e <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+38>:    ld      t0,264(a0)
+   0x80002592 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+42>:    li      a4,2
+   0x80002594 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+44>:    bgeu    a2,a4,0x80002674 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+268>
+   0x80002598 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+48>:    bgeu    a1,t0,0x8000270e <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+422>
+   0x8000259c <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+52>:    bltu    a3,t0,0x800025a2 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+58>
+   0x800025a0 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+56>:    mv      t0,a3
+   0x800025a2 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+58>:    addi    a6,a0,8
+   0x800025a6 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+62>:    neg     a1,t0
+   0x800025aa <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+66>:    auipc   a3,0x4
+   0x800025ae <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+70>:    ld      a3,-866(a3)
+   0x800025b2 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+74>:    auipc   a4,0x4
+   0x800025b6 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+78>:    and     a1,t0,a1
+   0x800025ba <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+82>:    addi    a4,a4,142
+   0x800025be <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+86>:    mul     a1,a1,a3
+   0x800025c2 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+90>:    srli    a1,a1,0x3a
+   0x800025c4 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+92>:    add     a1,a1,a4
+   0x800025c6 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+94>:    lbu     t2,0(a1)
+   0x800025ca <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+98>:    sd      t0,-88(s0)
+   0x800025ce <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+102>:   li      a1,1
+   0x800025d0 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+104>:   li      a3,32
+   0x800025d4 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+108>:   slli    a7,t2,0x3
+   0x800025d8 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+112>:   sub     a4,a1,t2
+   0x800025dc <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+116>:   sub     a1,a3,t2
+   0x800025e0 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+120>:   add     a3,a0,a7
+   0x800025e4 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+124>:   sltiu   a5,a1,33
+   0x800025e8 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+128>:   neg     a5,a5
+   0x800025ec <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+132>:   and     a5,a5,a1
+   0x800025ee <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+134>:   beqz    a5,0x80002716 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+430>
+   0x800025f2 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+138>:   ld      t1,8(a3)
+   0x800025f6 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+142>:   addi    a1,a3,8
+   0x800025fa <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+146>:   addi    a4,a4,-1
+   0x800025fc <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+148>:   addi    a5,a5,-1
+   0x800025fe <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+150>:   mv      a3,a1
+   0x80002600 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+152>:   beqz    t1,0x800025ee <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+134>
+   0x80002604 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+156>:   neg     a5,a4
+   0x80002608 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+160>:   bgeu    t2,a5,0x80002638 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+208>
+   0x8000260c <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+164>:   li      t1,1
+   0x8000260e <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+166>:   ld      a4,0(a1)
+   0x80002610 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+168>:   beqz    a4,0x80002762 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+506>
+   0x80002614 <<os::mm::buddy_allocator::LockedHeap as core::alloc::global::GlobalAlloc>::alloc+172>:   addi    a5,a5,-1

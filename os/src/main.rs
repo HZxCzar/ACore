@@ -18,9 +18,11 @@ mod timer;
 mod mm;
 mod mmod;
 mod config;
+mod loader;
 pub mod trap;
 pub mod sync;
-// pub mod syscall;
+pub mod task;
+pub mod syscall;
 use core::arch::global_asm;
 global_asm!(include_str!("entry.s"));
 
@@ -60,6 +62,7 @@ pub fn rust_main() -> ! {
     clear_bss();
     uart_init();
     mm::init();
+    // mm::remap_test();
     // trap::init();
     // println!("Hello, world!");
     // while(true){

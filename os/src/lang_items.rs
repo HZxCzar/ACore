@@ -4,12 +4,12 @@ use crate::println;
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
-    shutdown()
+    shutdown(true)
 }
 
 /// 关闭计算机
-pub fn shutdown() -> ! {
-    println!("Shutdown machine!");
+pub fn shutdown(failure: bool) -> ! {
+    // println!("Shutdown machine!");
     
     // QEMU virt 平台的 test 设备地址
     const VIRT_TEST_ADDR: *mut u32 = 0x100000 as *mut u32;

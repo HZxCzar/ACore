@@ -1,5 +1,5 @@
-use core::fmt::{self, Write};
 use crate::uart::Uart;
+use core::fmt::{self, Write};
 
 pub static mut UART: Option<*mut Uart> = None;
 

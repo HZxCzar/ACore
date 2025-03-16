@@ -4,26 +4,27 @@ use riscv::register::mscratch;
 use riscv::register::mstatus::MPP;
 use riscv::register::{mcause, mepc, mie, mstatus, mtvec, pmpaddr0, pmpcfg0, satp, sie};
 
-use crate::config::MACHINE_STACK_SIZE;
+use crate::config::TRAP_CONTEXT;
+use crate::config::TRAMPOLINE;
 use crate::trap::TrapContext;
-struct MachineStack {
-    data: [u8; MACHINE_STACK_SIZE],
-}
-static MACHINE_STACK: MachineStack = MachineStack {
-    data: [0; MACHINE_STACK_SIZE],
-};
-impl MachineStack {
-    fn get_sp(&self) -> usize {
-        self.data.as_ptr() as usize + MACHINE_STACK_SIZE
-    }
-    pub fn push_context(&self, cx: TrapContext) -> &'static mut TrapContext {
-        let cx_ptr = (self.get_sp() - core::mem::size_of::<TrapContext>()) as *mut TrapContext;
-        unsafe {
-            *cx_ptr = cx;
-        }
-        unsafe { cx_ptr.as_mut().unwrap() }
-    }
-}
+// struct MachineStack {
+//     data: [u8; MACHINE_STACK_SIZE],
+// }
+// static MACHINE_STACK: MachineStack = MachineStack {
+//     data: [0; MACHINE_STACK_SIZE],
+// };
+// impl MachineStack {
+//     fn get_sp(&self) -> usize {
+//         self.data.as_ptr() as usize + MACHINE_STACK_SIZE
+//     }
+//     pub fn push_context(&self, cx: TrapContext) -> &'static mut TrapContext {
+//         let cx_ptr = (self.get_sp() - core::mem::size_of::<TrapContext>()) as *mut TrapContext;
+//         unsafe {
+//             *cx_ptr = cx;
+//         }
+//         unsafe { cx_ptr.as_mut().unwrap() }
+//     }
+// }
 
 global_asm!(include_str!("trap.S"));
 unsafe extern "C" {
@@ -67,13 +68,13 @@ pub unsafe fn m_mode_init() -> ! {
 
     unsafe {
         // 设置时钟中断处理函数
-        mtvec::write(__alltraps_m as usize, mtvec::TrapMode::Direct);
+        mtvec::write(TRAMPOLINE as usize, mtvec::TrapMode::Direct);
 
         mstatus::set_mie();
 
         mie::set_mtimer();
 
-        asm!("csrw mscratch, {}", in(reg) MACHINE_STACK.get_sp());
+        asm!("csrw mscratch, {}", in(reg) TRAP_CONTEXT as usize);
     }
 
     // 执行 mret 指令切换到 S 模式

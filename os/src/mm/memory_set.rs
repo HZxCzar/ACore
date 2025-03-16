@@ -88,6 +88,18 @@ impl MemorySet {
             ".bss [{:#x}, {:#x})",
             sbss_with_stack as usize, ebss as usize
         );
+
+        println!("mapping UART section");
+        // 添加UART设备映射 - 将物理地址映射到相同的虚拟地址或特定虚拟地址
+        memory_set.push(
+            MapArea::new(
+                VirtAddr::from(0x10000000), // UART起始虚拟地址
+                VirtAddr::from(0x10000100), // UART结束虚拟地址
+                MapType::Identical,         // 或使用特定的虚拟地址
+                MapPermission::R | MapPermission::W,
+            ),
+            None,
+        );
         println!("mapping .text section");
         memory_set.push(
             MapArea::new(
@@ -235,8 +247,9 @@ impl MemorySet {
         unsafe {
             satp::write(satp);
             asm!("sfence.vma");
+            // asm!("j 0x800019D6");
         }
-        println!("activate memory set end");
+        // println!("activate memory set end");
     }
     pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
         self.page_table.translate(vpn)
