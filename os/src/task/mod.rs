@@ -76,6 +76,7 @@ impl TaskManager {
     /// Generally, the first task in task list is an idle task (we call it zero process later).
     /// But in ch4, we load apps statically, so the first task is a real app.
     fn run_first_task(&self) -> ! {
+        println!("init first task");
         let mut inner = self.inner.exclusive_access();
         let next_task = &mut inner.tasks[0];
         next_task.task_status = TaskStatus::Running;
@@ -186,6 +187,7 @@ pub fn suspend_current_and_run_next() {
 /// Exit the current 'Running' task and run the next task in task list.
 pub fn exit_current_and_run_next() {
     mark_current_exited();
+    // println!("exit_current_and_run_next");
     run_next_task();
 }
 

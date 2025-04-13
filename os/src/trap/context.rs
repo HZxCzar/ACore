@@ -17,8 +17,6 @@ pub struct TrapContext {
     pub kernel_sp: usize,
     /// Addr of trap_handler_s function
     pub trap_handler_s: usize,
-    /// Addr of trap_handler_m function
-    pub trap_handler_m: usize,
 }
 
 impl TrapContext {
@@ -33,7 +31,6 @@ impl TrapContext {
         kernel_satp: usize,
         kernel_sp: usize,
         trap_handler_s: usize,
-        trap_handler_m: usize,
     ) -> Self {
         let mut sstatus = sstatus::read(); // CSR sstatus
         sstatus.set_spp(SPP::User); //previous privilege mode: user mode
@@ -44,7 +41,6 @@ impl TrapContext {
             kernel_satp,  // addr of page table
             kernel_sp,    // kernel stack
             trap_handler_s, // addr of trap_handler_s function
-            trap_handler_m, // addr of trap_handler_m function
         };
         cx.set_sp(sp); // app's user stack pointer
         cx // return initial Trap Context of app

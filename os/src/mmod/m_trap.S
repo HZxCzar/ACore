@@ -1,31 +1,15 @@
-# .section .text
-# .globl __timer_trap
-# __timer_trap:
-#     # 保存上下文
-#     addi sp, sp, -16
-#     sd ra, 0(sp)
-#     sd t0, 8(sp)
-    
-#     # # 调用 Rust 中断处理函数
-#     # call handle_timer_interrupt
-    
-#     # 恢复上下文并返回
-#     ld ra, 0(sp)
-#     ld t0, 8(sp)
-#     addi sp, sp, 16
-#     mret
 .altmacro
-.macro TIMER_SAVE_GP n
+.macro SAVE_GP n
     sd x\n, \n*8(sp)
 .endm
-.macro TIMER_LOAD_GP n
+.macro LOAD_GP n
     ld x\n, \n*8(sp)
 .endm
-    .section .text
-    .globl __timer_trap
-    .globl __timer_restore
+    .section .text.mtraps
+    .globl __alltraps_m
+    .globl __restore_m
     .align 2
-__timer_trap:
+__alltraps_m:
     csrrw sp, mscratch, sp
     # now sp->kernel stack, sscratch->user stack
     # allocate a TrapContext on kernel stack
@@ -38,7 +22,7 @@ __timer_trap:
     # save x5~x31
     .set n, 5
     .rept 27
-        TIMER_SAVE_GP %n
+        SAVE_GP %n
         .set n, n+1
     .endr
     # we can use t0/t1/t2 freely, because they were saved on kernel stack
@@ -49,14 +33,9 @@ __timer_trap:
     # read user stack from sscratch and save it on the kernel stack
     csrr t2, mscratch
     sd t2, 2*8(sp)
-    # set input argument of trap_handler(cx: &mut TrapContext)
-    mv a0, sp
-    call timer_trap_handler
+    call trap_handler_m
 
-__timer_restore:
-    # case1: start running app by __restore
-    # case2: back to U after handling trap
-    mv sp, a0
+__restore_m:
     # now sp->kernel stack(after allocated), sscratch->user stack
     # restore sstatus/sepc
     ld t0, 32*8(sp)
@@ -70,7 +49,7 @@ __timer_restore:
     ld x3, 3*8(sp)
     .set n, 5
     .rept 27
-        TIMER_LOAD_GP %n
+        LOAD_GP %n
         .set n, n+1
     .endr
     # release TrapContext on kernel stack

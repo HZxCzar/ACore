@@ -29,6 +29,4 @@ pub fn init() {
     // heap_test();
     frame_allocator::init_frame_allocator();
     KERNEL_SPACE.exclusive_access().activate();
-    remap_test();
-    // println!("|mm_init_error|");
 }

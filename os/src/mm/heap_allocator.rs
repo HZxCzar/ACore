@@ -27,8 +27,8 @@ pub fn heap_test() {
     use alloc::boxed::Box;
     use alloc::vec::Vec;
     unsafe extern "C" {
-        fn sbss();
-        fn ebss();
+        safe fn sbss();
+        safe fn ebss();
     }
     let bss_range = sbss as usize..ebss as usize;
     let a = Box::new(5);

@@ -23,8 +23,12 @@ pub mod trap;
 pub mod sync;
 pub mod task;
 pub mod syscall;
+
+// use config::TRAMPOLINE;
+// use riscv::register::mtvec;
 use core::arch::global_asm;
 global_asm!(include_str!("entry.s"));
+global_asm!(include_str!("link_app.S"));
 
 use uart::Uart;
 // static mut UART_INSTANCE: uart::Uart = unsafe { uart::Uart::new(0x1000_0000) };
@@ -32,8 +36,8 @@ static mut UART_INSTANCE: Option<Uart> = None;
 
 fn clear_bss() {
     unsafe extern "C" {
-        fn sbss();
-        fn ebss();
+        safe fn sbss();
+        safe fn ebss();
     }
     (sbss as usize..ebss as usize).for_each(|a| unsafe { (a as *mut u8).write_volatile(0) });
 }
@@ -57,16 +61,35 @@ pub extern "C" fn mmode_start() -> ! {
     panic!("|mmode_start_error|");
 }
 
+pub fn dump_memory(addr: usize, size: usize) {
+    println!("内存内容 [{:#x}..{:#x}]:", addr, addr + size);
+    
+    unsafe {
+        // 将地址解释为u32指针（RISC-V指令是32位的）
+        let code_ptr = addr as *const u32;
+        
+        // 尝试读取并打印指令
+        for i in 0..(size / 4) {
+            let instruction = *code_ptr.add(i);
+            println!("{:#x}: {:#010x}", addr + i * 4, instruction);
+        }
+    }
+}
+
 #[unsafe(no_mangle)]
 pub fn rust_main() -> ! {
     clear_bss();
     uart_init();
     mm::init();
-    // mm::remap_test();
-    // trap::init();
-    // println!("Hello, world!");
-    // while(true){
-
+    trap::init();
+    mm::remap_test();
+    // dump_memory(TRAMPOLINE, 0x10);
+    timer::set_next_trigger();
+    // println!("准备进入M模式trap处理程序...");
+    // unsafe { core::arch::asm!("ecall"); }  // 添加这一行触发M模式trap
+    // while true {
+        
     // }
+    task::run_first_task();
     panic!("|program finished|");
 }

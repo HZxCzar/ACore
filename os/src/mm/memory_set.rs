@@ -74,6 +74,10 @@ impl MemorySet {
             PhysAddr::from(strampoline as usize).into(),
             PTEFlags::R | PTEFlags::X,
         );
+        unsafe {
+            println!("TRAMPOLINE虚拟地址: {:#x}", TRAMPOLINE);
+            println!("TRAMPOLINE物理地址: {:#x}", strampoline as usize);
+        }
     }
     /// Without kernel stacks.
     pub fn new_kernel() -> Self {
@@ -96,6 +100,26 @@ impl MemorySet {
                 VirtAddr::from(0x10000000), // UART起始虚拟地址
                 VirtAddr::from(0x10000100), // UART结束虚拟地址
                 MapType::Identical,         // 或使用特定的虚拟地址
+                MapPermission::R | MapPermission::W,
+            ),
+            None,
+        );
+        println!("mapping Timer section");
+        // 添加Timer设备映射 - 将物理地址映射到相同的虚拟地址或特定虚拟地址
+        memory_set.push(
+            MapArea::new(
+                VirtAddr::from(0x0200b000), // Timer起始虚拟地址
+                VirtAddr::from(0x0200c000), // Timer结束虚拟地址
+                MapType::Identical,   
+                MapPermission::R | MapPermission::W,
+            ),
+            None,
+        );
+        memory_set.push(
+            MapArea::new(
+                VirtAddr::from(0x02004000), // MTIMECMP起始地址
+                VirtAddr::from(0x02005000), // MTIMECMP结束地址
+                MapType::Identical,
                 MapPermission::R | MapPermission::W,
             ),
             None,
@@ -247,9 +271,7 @@ impl MemorySet {
         unsafe {
             satp::write(satp);
             asm!("sfence.vma");
-            // asm!("j 0x800019D6");
         }
-        // println!("activate memory set end");
     }
     pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
         self.page_table.translate(vpn)

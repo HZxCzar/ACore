@@ -2,7 +2,7 @@
 use super::TaskContext;
 use crate::config::{TRAP_CONTEXT, kernel_stack_position};
 use crate::mm::{KERNEL_SPACE, MapPermission, MemorySet, PhysPageNum, VirtAddr};
-use crate::trap::{TrapContext, trap_handler_s, trap_handler_m};
+use crate::trap::{TrapContext, trap_handler_s};
 
 /// task control block structure
 pub struct TaskControlBlock {
@@ -55,7 +55,6 @@ impl TaskControlBlock {
             KERNEL_SPACE.exclusive_access().token(),
             kernel_stack_top,
             trap_handler_s as usize,
-            trap_handler_m as usize
         );
         task_control_block
     }
