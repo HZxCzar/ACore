@@ -69,11 +69,11 @@ pub fn trap_handler_s() -> ! {
                 "[kernel] PageFault in application, bad addr = {:#x}, bad instruction = {:#x}, kernel killed it.",
                 stval, cx.sepc
             );
-            exit_current_and_run_next();
+            exit_current_and_run_next(-2);
         }
         Trap::Exception(Exception::IllegalInstruction) => {
             println!("[kernel] IllegalInstruction in application, kernel killed it.");
-            exit_current_and_run_next();
+            exit_current_and_run_next(-3);
         }
         Trap::Interrupt(SupervisorTimer) => {
             println!("|s_timer_interrupt|");
@@ -81,7 +81,7 @@ pub fn trap_handler_s() -> ! {
             suspend_current_and_run_next();
         }
         Trap::Interrupt(SupervisorSoft) =>{
-            println!("|s_soft_interrupt|");
+            // println!("|s_soft_interrupt|");
             unsafe {
                 // 读取当前sip值
                 let sip = riscv::register::sip::read().bits();

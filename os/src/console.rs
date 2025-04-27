@@ -27,6 +27,19 @@ pub fn print(args: fmt::Arguments) {
     }
 }
 
+pub fn getchar() -> u8 {
+    unsafe {
+        if let Some(uart_ptr) = UART {
+            let uart = &mut *uart_ptr;
+            uart.receive()
+        } else {
+            // 如果UART未初始化，返回0
+            0
+        }
+    }
+}
+
+
 #[macro_export]
 macro_rules! print {
     ($fmt: literal $(, $($arg: tt)+)?) => {

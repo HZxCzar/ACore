@@ -81,15 +81,19 @@ pub fn rust_main() -> ! {
     clear_bss();
     uart_init();
     mm::init();
-    trap::init();
     mm::remap_test();
-    // dump_memory(TRAMPOLINE, 0x10);
+    task::add_initproc();
+    println!("after initproc!");
+    trap::init();
     timer::set_next_trigger();
+    loader::list_apps();
+    task::run_tasks();
     // println!("准备进入M模式trap处理程序...");
     // unsafe { core::arch::asm!("ecall"); }  // 添加这一行触发M模式trap
     // while true {
         
     // }
-    task::run_first_task();
+    // println!("|rust_main|");
+    // task::run_tasks();
     panic!("|program finished|");
 }
