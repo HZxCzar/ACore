@@ -6,6 +6,7 @@ use crate::trap::TrapContext;
 use alloc::str;
 use alloc::sync::Arc;
 use lazy_static::*;
+use crate::mm::VirtAddr;
 
 pub struct Processor {
     /// The task currently executing on the current processor
@@ -48,6 +49,7 @@ pub fn run_tasks(){
             let mut task_inner = task.inner_exclusive_access();
             let next_task_cx_ptr = &task_inner.task_cx as *const TaskContext;
             task_inner.task_status = TaskStatus::Running;
+            // println!("[kernel] Switch to task {} ... ra is {}", task.getpid(), task_inner.task_cx.get_ra());
             drop(task_inner);
             processor.current = Some(task);
             drop(processor);
@@ -60,6 +62,17 @@ pub fn run_tasks(){
 
 pub fn take_current_task() -> Option<Arc<TaskControlBlock>> {
     PROCESSOR.exclusive_access().take_current()
+}
+
+pub fn handle_cow(fault_addr: VirtAddr) -> bool {
+    let task = PROCESSOR.exclusive_access().current().unwrap();
+    let mut task_inner = task.inner_exclusive_access();
+    let memory_set = &mut task_inner.memory_set;
+    if crate::mm::MemorySet::cow_judge(memory_set, fault_addr) {
+        memory_set.cow(fault_addr);
+        return true;
+    }
+    false
 }
 
 pub fn current_task() -> Option<Arc<TaskControlBlock>> {
@@ -77,7 +90,7 @@ pub fn current_trap_cx() -> &'static mut TrapContext {
 }
 
 pub fn schedule(switched_task_cx_ptr: *mut TaskContext) {
-    println!("[kernel] schedule");
+    // println!("[kernel] schedule");
     let mut processor = PROCESSOR.exclusive_access();
     let idle_task_cx_ptr = processor.get_idle_task_cx_ptr();
     drop(processor);

@@ -36,11 +36,17 @@ pub fn sys_fork() -> isize {
     trap_cx.x[10] = 0;
     // add new task to scheduler
     add_task(new_task);
+    // println!(
+    //     "[kernel] Forked new task with pid {}",
+    //     new_pid
+    // );
     new_pid as isize
 }
 
 pub fn sys_exec(path: *const u8) -> isize {
+    println!("[kernel] exec");
     let token = current_user_token();
+    // println!("token: {:#x}", token);
     let path = translated_str(token, path);
     if let Some(data) = get_app_data_by_name(path.as_str()) {
         let task = current_task().unwrap();

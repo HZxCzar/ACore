@@ -1,5 +1,6 @@
 //! Implementation of [`MapArea`] and [`MemorySet`].
 
+use super::frame_allocator::only_one_frame;
 use super::{FrameTracker, frame_alloc};
 use super::{PTEFlags, PageTable, PageTableEntry};
 use super::{PhysAddr, PhysPageNum, VirtAddr, VirtPageNum};
@@ -10,7 +11,9 @@ use alloc::collections::BTreeMap;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::arch::asm;
+use core::iter::Map;
 use lazy_static::*;
+use riscv::paging::PTE;
 use riscv::register::satp;
 
 unsafe extern "C" {
@@ -121,7 +124,7 @@ impl MemorySet {
             MapArea::new(
                 VirtAddr::from(0x0200b000), // Timer起始虚拟地址
                 VirtAddr::from(0x0200c000), // Timer结束虚拟地址
-                MapType::Identical,   
+                MapType::Identical,
                 MapPermission::R | MapPermission::W,
             ),
             None,
@@ -268,7 +271,141 @@ impl MemorySet {
         )
     }
 
-    pub fn from_existed_user(user_space: &Self) -> Self{
+    /// fork 时调用：新的 MemorySet
+    pub fn from_cow(user_space: &mut Self) -> Self {
+        // 1. 新建一张空页表
+        let mut child = Self::new_bare();
+        child.map_trampoline();
+        // println!("TRAP_CONTEXT: {:#x}", VirtAddr::from(TRAP_CONTEXT).0);
+        // 2. 遍历父进程每一个 MapArea
+        for area in user_space.areas.iter_mut() {
+            // println!("area map permission: {:#x}", area.map_perm.bits());
+            area.map_type = MapType::Cow;
+            let mut haswrite = false;
+            if area.map_perm.contains(MapPermission::W) {
+                area.map_perm.remove(MapPermission::W);
+                haswrite = true;
+            }
+            let mut new_area = MapArea::from_another(area);
+            // area.map(&mut user_space.page_table);
+
+            // 3. 把这个 area 里每一页都取出父 PTE，清掉 WRITE、加上 COW，
+            //    然后重新装回父表，并装到子表里
+            for vpn in area.vpn_range {
+                if vpn == VirtPageNum::from(VirtAddr::from(TRAP_CONTEXT).0 / PAGE_SIZE) {
+                    // println!("mapping TRAP_CONTEXT");
+                    new_area.map_perm.insert(MapPermission::W);
+                    new_area.map_one(&mut child.page_table, vpn, None);
+                    let src_ppn = user_space.page_table.translate(vpn).unwrap().ppn();
+                    let dst_ppn = child.translate(vpn).unwrap().ppn();
+                    dst_ppn
+                        .get_bytes_array()
+                        .copy_from_slice(src_ppn.get_bytes_array());
+                    // println!("vpn: {:#x}, ppn: {:#x}", vpn.0, dst_ppn.0);
+                    // println!("child area map permission: {:#x}", new_area.map_perm.bits());
+                    new_area.map_perm.remove(MapPermission::W);
+                    continue;
+                }
+                let ppn = user_space.page_table.translate(vpn).unwrap().ppn();
+                // println!("parent: vpn: {:#x}, ppn: {:#x}", vpn.0, ppn.0);
+
+                // 父表去掉写权限（Dirty/D bit 可以不动，也可以清）
+                let pte_flags = PTEFlags::from_bits(area.map_perm.bits()).unwrap();
+                // area.map_perm 已经去掉了 W，所以这里同样不带 W
+                user_space.page_table.map_modify(vpn, ppn, pte_flags);
+
+                // 在 child 上用相同的 ppn＋flags 来做只读映射
+                let frame_ref = area.data_frames.get(&vpn).unwrap();
+                new_area.map_one(&mut child.page_table, vpn, Some(frame_ref.clone()));
+                // println!("vpn: {:#x}, ppn: {:#x}", vpn.0, ppn.0);
+                // println!("child area map permission: {:#x}\n", new_area.map_perm.bits());
+            }
+
+            // 6. 子进程的 MapArea 里也记下它属于 COW 类型
+            if (haswrite) {
+                area.map_perm.insert(MapPermission::W);
+                new_area.map_perm.insert(MapPermission::W);
+            }
+            child.areas.push(new_area);
+        }
+
+        unsafe {
+            asm!("sfence.vma");
+        }
+        // unsafe {
+        //     satp::write(child.page_table.token());
+        //     asm!("sfence.vma");
+        // }
+        // let ptr = 0x12345678 as *const u8;
+        // println!("byte at 0x12345678: {:#x}", unsafe { *ptr });
+        child
+    }
+
+    pub fn cow_judge(user_space: &mut Self, fault_addr: VirtAddr) -> bool {
+        for area in user_space.areas.iter() {
+            let vpn = fault_addr.floor();
+            if vpn >= area.vpn_range.get_start() && vpn < area.vpn_range.get_end() {
+                if area.map_type == MapType::Cow && area.map_perm.contains(MapPermission::W) {
+                    return true;
+                }
+                return false;
+            }
+        }
+        false
+    }
+
+    pub fn cow(&mut self, fault_addr: VirtAddr) -> bool {
+        let vpn = fault_addr.floor();
+        for area in self.areas.iter_mut() {
+            if vpn >= area.vpn_range.get_start() && vpn < area.vpn_range.get_end() {
+                // 拿到原 PTE
+                // println!(
+                //     "vpn: {:#x}, ppn: {:#x}",
+                //     vpn.0,
+                //     area.vpn_range.get_start().0
+                // );
+                let old_pte = self.page_table.translate(vpn).unwrap();
+                let src_ppn = old_pte.ppn();
+                if only_one_frame(src_ppn) {
+                    // println!("only one frame");
+                    // 直接修改原 PTE
+                    let pte_flags = PTEFlags::from_bits(area.map_perm.bits()).unwrap();
+                    self.page_table.map_modify(vpn, src_ppn, pte_flags);
+                    // println!("vpn: {:#x}, ppn: {:#x}", vpn.0, src_ppn.0);
+                } else {
+                    let frame = frame_alloc().unwrap();
+                    // println!("frame ppn: {:#x}", frame.ppn.0);
+                    let dst_ppn = frame.ppn;
+                    dst_ppn
+                        .get_bytes_array()
+                        .copy_from_slice(src_ppn.get_bytes_array());
+                    // println!(
+                    //     "vpn: {:#x}, ppn: {:#x}",
+                    //     vpn.0,
+                    //     area.vpn_range.get_start().0
+                    // );
+                    area.unmap_one(&mut self.page_table, vpn);
+                    // 手动设置PTE，不通过map_one重新创建FrameTracker
+                    area.data_frames.insert(vpn, frame);
+                    let pte_flags = PTEFlags::from_bits(area.map_perm.bits()).unwrap();
+                    self.page_table.map(vpn, dst_ppn, pte_flags);
+                }
+                // 手动插入新的FrameTracker
+                // area.map_one(&mut self.page_table, vpn, Some(dst_ppn));
+                // let dst_ppn = self.page_table.translate(vpn).unwrap().ppn();
+                // dst_ppn
+                //     .get_bytes_array()
+                //     .copy_from_slice(src_ppn.get_bytes_array());
+                unsafe {
+                    asm!("sfence.vma");
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    pub fn from_existed_user(user_space: &Self) -> Self {
         let mut memory_set = Self::new_bare();
         memory_set.map_trampoline();
         for area in user_space.areas.iter() {
@@ -280,6 +417,8 @@ impl MemorySet {
                 dst_ppn
                     .get_bytes_array()
                     .copy_from_slice(src_ppn.get_bytes_array());
+                // println!("vpn: {:#x}, ppn: {:#x}", vpn.0, dst_ppn.0);
+                // println!("child area map permission: {:#x}", area.map_perm.bits());
             }
         }
         memory_set
@@ -359,7 +498,12 @@ impl MapArea {
             map_perm: another.map_perm,
         }
     }
-    pub fn map_one(&mut self, page_table: &mut PageTable, vpn: VirtPageNum) {
+    pub fn map_one(
+        &mut self,
+        page_table: &mut PageTable,
+        vpn: VirtPageNum,
+        cow_frame: Option<FrameTracker>,
+    ) {
         // println!("mapping one");
         let ppn: PhysPageNum;
         match self.map_type {
@@ -371,20 +515,40 @@ impl MapArea {
                 ppn = frame.ppn;
                 self.data_frames.insert(vpn, frame);
             }
+            MapType::Cow => {
+                //error
+                if let Some(frame) = cow_frame {
+                    // println!("mapping cow");
+                    //初始化
+                    // let frame = frame_alloc().unwrap();
+                    // ppn = frame.ppn;
+                    ppn = frame.ppn;
+                    self.data_frames.insert(vpn, frame);
+                } else {
+                    //cow handle & TrapContext
+                    // println!("mapping cow allocate");
+                    let frame = frame_alloc().unwrap();
+                    ppn = frame.ppn;
+                    self.data_frames.insert(vpn, frame);
+                }
+            }
         }
         let pte_flags = PTEFlags::from_bits(self.map_perm.bits()).unwrap();
         page_table.map(vpn, ppn, pte_flags);
     }
     #[allow(unused)]
     pub fn unmap_one(&mut self, page_table: &mut PageTable, vpn: VirtPageNum) {
-        if self.map_type == MapType::Framed {
+        if self.map_type == MapType::Framed || self.map_type == MapType::Cow {
+            // if self.map_type == MapType::Cow {
+            //     println!("unmapping {}", vpn.0);
+            // }
             self.data_frames.remove(&vpn);
         }
         page_table.unmap(vpn);
     }
     pub fn map(&mut self, page_table: &mut PageTable) {
         for vpn in self.vpn_range {
-            self.map_one(page_table, vpn);
+            self.map_one(page_table, vpn, None);
         }
     }
     #[allow(unused)]
@@ -403,7 +567,7 @@ impl MapArea {
     #[allow(unused)]
     pub fn append_to(&mut self, page_table: &mut PageTable, new_end: VirtPageNum) {
         for vpn in VPNRange::new(self.vpn_range.get_end(), new_end) {
-            self.map_one(page_table, vpn)
+            self.map_one(page_table, vpn, None);
         }
         self.vpn_range = VPNRange::new(self.vpn_range.get_start(), new_end);
     }
@@ -436,6 +600,7 @@ impl MapArea {
 pub enum MapType {
     Identical,
     Framed,
+    Cow,
 }
 
 bitflags! {

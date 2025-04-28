@@ -111,7 +111,8 @@ impl TaskControlBlock {
     }
     pub fn fork(self: &Arc<Self>) -> Arc<Self> {
         let mut parent_inner = self.inner_exclusive_access();
-        let memory_set = MemorySet::from_existed_user(&parent_inner.memory_set);
+        let memory_set = MemorySet::from_cow(&mut parent_inner.memory_set);
+        // let memory_set = MemorySet::from_existed_user(&mut parent_inner.memory_set);
         let trap_cx_ppn = memory_set
             .translate(VirtAddr::from(TRAP_CONTEXT).into())
             .unwrap()

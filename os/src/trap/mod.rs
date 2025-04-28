@@ -17,13 +17,22 @@ mod context;
 // use crate::batch::run_next_app;
 // use crate::syscall::syscall;
 use crate::config::{TRAMPOLINE, TRAP_CONTEXT};
+use crate::mm::VirtAddr;
 use crate::syscall::syscall;
-use core::arch::{global_asm, asm};
 use crate::task::{
     current_trap_cx, current_user_token, exit_current_and_run_next, suspend_current_and_run_next,
 };
+use core::arch::{asm, global_asm};
 use riscv::register::{
-    mcause::{self,Interrupt},mtvec::TrapMode, scause::{self, Exception,Interrupt::{SupervisorTimer,SupervisorSoft},Trap}, stval, stvec,mtval
+    mcause::{self, Interrupt},
+    mtval,
+    mtvec::TrapMode,
+    scause::{
+        self, Exception,
+        Interrupt::{SupervisorSoft, SupervisorTimer},
+        Trap,
+    },
+    stval, stvec,
 };
 
 global_asm!(include_str!("trap.S"));
@@ -56,13 +65,35 @@ pub fn trap_handler_s() -> ! {
     let scause = scause::read(); // get trap cause
     let stval = stval::read(); // get extra value
     // println!("|s_interrupt|");
+    // println!(
+    //     "[kernel] trap_handler_s: scause = {:?}, stval = {:#x}, sepc = {:#x}",
+    //     scause.cause(),
+    //     stval,
+    //     cx.sepc
+    // );
     match scause.cause() {
         Trap::Exception(Exception::UserEnvCall) => {
             cx.sepc += 4;
+            // if(cx.x[17] == 221){
+            //     println!("a0 = {:#x}, a1 = {:#x}, a2 = {:#x}", cx.x[10], cx.x[11], cx.x[12]);
+            // }
             cx.x[10] = syscall(cx.x[17], [cx.x[10], cx.x[11], cx.x[12]]) as usize;
         }
+        Trap::Exception(Exception::StorePageFault) => {
+            // println!(
+            //     "[kernel] StorePageFault in application, bad addr = {:#x}, bad instruction = {:#x}",
+            //     stval, cx.sepc
+            // );
+            let fault_addr = VirtAddr(stval::read());
+            if !crate::task::handle_cow(fault_addr) {
+                println!("[kernel] StorePageFault in application and not cow");
+                exit_current_and_run_next(-2);
+            }
+            // else{
+            //     println!("[kernel] StorePageFault in application and cow");
+            // }
+        }
         Trap::Exception(Exception::StoreFault)
-        | Trap::Exception(Exception::StorePageFault)
         | Trap::Exception(Exception::LoadFault)
         | Trap::Exception(Exception::LoadPageFault) => {
             println!(
@@ -73,6 +104,10 @@ pub fn trap_handler_s() -> ! {
         }
         Trap::Exception(Exception::IllegalInstruction) => {
             println!("[kernel] IllegalInstruction in application, kernel killed it.");
+            println!(
+                "[kernel] bad instruction = {:#x}, bad addr = {:#x}",
+                cx.sepc, stval
+            );
             exit_current_and_run_next(-3);
         }
         Trap::Interrupt(SupervisorTimer) => {
@@ -80,13 +115,14 @@ pub fn trap_handler_s() -> ! {
             // set_next_trigger();
             suspend_current_and_run_next();
         }
-        Trap::Interrupt(SupervisorSoft) =>{
+        Trap::Interrupt(SupervisorSoft) => {
             // println!("|s_soft_interrupt|");
             unsafe {
                 // 读取当前sip值
                 let sip = riscv::register::sip::read().bits();
                 // 将SSIP位(第1位)清除
                 asm!("csrw sip, {sip}", sip = in(reg) sip & !2);
+                // panic!("|s_soft_interrupt|");
             }
         }
         _ => {
@@ -99,7 +135,6 @@ pub fn trap_handler_s() -> ! {
     }
     trap_return_s();
 }
-
 
 fn set_user_trap_entry() {
     unsafe extern "C" {
@@ -116,6 +151,7 @@ fn set_user_trap_entry() {
 /// finally, jump to new addr of __restore asm function
 pub fn trap_return_s() -> ! {
     set_user_trap_entry();
+    // println!("|s_trap_return|");
     let trap_cx_ptr = TRAP_CONTEXT;
     let user_satp = current_user_token();
     // println!("|s_trap_return|");

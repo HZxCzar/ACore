@@ -22,8 +22,8 @@ mod switch;
 #[allow(clippy::module_inception)]
 mod task;
 
-use crate::loader::get_app_data_by_name;
 use crate::lang_items::shutdown;
+use crate::loader::get_app_data_by_name;
 use alloc::sync::Arc;
 use lazy_static::*;
 pub use manager::{TaskManager, fetch_task};
@@ -34,7 +34,7 @@ pub use context::TaskContext;
 pub use manager::add_task;
 pub use pid::{KernelStack, PidAllocator, PidHandle, pid_alloc};
 pub use processor::{
-    Processor, current_task, current_trap_cx, current_user_token, run_tasks, schedule,
+    Processor, current_task, current_trap_cx, current_user_token, handle_cow, run_tasks, schedule,
     take_current_task,
 };
 /// Suspend the current 'Running' task and run the next task in task list.
@@ -52,6 +52,7 @@ pub fn suspend_current_and_run_next() {
 
     // push back to ready queue.
     add_task(task);
+    // println!("[kernel] Suspend current task");
     // jump to scheduling cycle
     schedule(task_cx_ptr);
 }
@@ -61,14 +62,12 @@ pub const IDLE_PID: usize = 0;
 
 /// Exit the current 'Running' task and run the next task in task list.
 pub fn exit_current_and_run_next(exit_code: i32) {
-    println!(
-        "[kernel] Exit current task with exit_code {}",
-        exit_code
-    );
+
     // take from Processor
     let task = take_current_task().unwrap();
 
     let pid = task.getpid();
+    println!("[kernel] Exit current task {} with exit_code {}",pid, exit_code);
     if pid == IDLE_PID {
         println!(
             "[kernel] Idle process exit with exit_code {} ...",
@@ -109,7 +108,8 @@ pub fn exit_current_and_run_next(exit_code: i32) {
     // drop task manually to maintain rc correctly
     drop(task);
     // we do not have to save task context
-    let mut _unused = TaskContext::zero_init(); 
+    let mut _unused = TaskContext::zero_init();
+    println!("[kernel] Switch to next task ...");
     schedule(&mut _unused as *mut _);
 }
 

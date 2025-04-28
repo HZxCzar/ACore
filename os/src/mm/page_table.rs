@@ -133,6 +133,12 @@ impl PageTable {
         assert!(pte.is_valid(), "vpn {:?} is invalid before unmapping", vpn);
         *pte = PageTableEntry::empty();
     }
+    #[allow(unused)]
+    pub fn map_modify(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
+        let pte = self.find_pte(vpn).unwrap();
+        assert!(pte.is_valid(), "vpn {:?} is invalid before unmapping", vpn);
+        *pte = PageTableEntry::new(ppn, flags | PTEFlags::V);
+    }
     pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {
         self.find_pte(vpn).map(|pte| *pte)
     }
@@ -177,6 +183,7 @@ pub fn translated_str(token: usize, ptr: *const u8) -> String {
     let page_table = PageTable::from_token(token);
     let mut string = String::new();
     let mut va = ptr as usize;
+    // println!("translated_str: before translate_va va = {:?}", va);
     loop {
         let ch: u8 = *(page_table
             .translate_va(VirtAddr::from(va))
@@ -196,7 +203,7 @@ pub fn translated_refmut<T>(token: usize, ptr: *mut T) -> &'static mut T {
     //println!("into translated_refmut!");
     let page_table = PageTable::from_token(token);
     let va = ptr as usize;
-    //println!("translated_refmut: before translate_va");
+    // println!("translated_refmut: before translate_va");
     page_table
         .translate_va(VirtAddr::from(va))
         .unwrap()
