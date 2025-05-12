@@ -112,7 +112,7 @@ pub fn trap_handler_s() -> ! {
         }
         Trap::Interrupt(SupervisorTimer) => {
             println!("|s_timer_interrupt|");
-            // set_next_trigger();
+            set_next_trigger();
             suspend_current_and_run_next();
         }
         Trap::Interrupt(SupervisorSoft) => {
@@ -124,6 +124,9 @@ pub fn trap_handler_s() -> ! {
                 asm!("csrw sip, {sip}", sip = in(reg) sip & !2);
                 // panic!("|s_soft_interrupt|");
             }
+            // 时间片轮转
+            set_next_trigger();
+            suspend_current_and_run_next();
         }
         _ => {
             panic!(
