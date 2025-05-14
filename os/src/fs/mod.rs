@@ -4,16 +4,16 @@ mod stdio;
 
 use crate::mm::UserBuffer;
 /// File trait
+use core::any::Any;
+
 pub trait File: Send + Sync {
-    /// If readable
     fn readable(&self) -> bool;
-    /// If writable
     fn writable(&self) -> bool;
-    /// Read file to `UserBuffer`
     fn read(&self, buf: UserBuffer) -> usize;
-    /// Write `UserBuffer` to file
     fn write(&self, buf: UserBuffer) -> usize;
+    fn seek(&self, offset: isize, whence: usize) -> Option<usize>;
+    fn as_any(&self) -> &dyn Any;
 }
 
-pub use inode::{OSInode, OpenFlags, list_apps, open_file};
+pub use inode::{OSInode, OpenFlags, list_apps, open_file, delete_file, make_dir, remove_dir, rename_file_or_dir};
 pub use stdio::{Stdin, Stdout};

@@ -76,7 +76,7 @@ fn easy_fs_pack() -> std::io::Result<()> {
         let mut all_data: Vec<u8> = Vec::new();
         host_file.read_to_end(&mut all_data).unwrap();
         // create a file in easy-fs
-        let inode = root_inode.create(app.as_str()).unwrap();
+        let inode = root_inode.create_file(app.as_str()).unwrap();
         // write data to easy-fs
         inode.write_at(0, all_data.as_slice());
     }
@@ -101,8 +101,8 @@ fn efs_test() -> std::io::Result<()> {
     EasyFileSystem::create(block_file.clone(), 4096, 1);
     let efs = EasyFileSystem::open(block_file.clone());
     let root_inode = EasyFileSystem::root_inode(&efs);
-    root_inode.create("filea");
-    root_inode.create("fileb");
+    root_inode.create_file("filea");
+    root_inode.create_file("fileb");
     for name in root_inode.ls() {
         println!("{}", name);
     }

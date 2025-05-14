@@ -2,8 +2,13 @@ use core::arch::asm;
 
 const SYSCALL_OPEN: usize = 56;
 const SYSCALL_CLOSE: usize = 57;
+const SYSCALL_DELETE: usize = 58;
+const SYSCALL_LSEEK: usize = 62;
 const SYSCALL_READ: usize = 63;
 const SYSCALL_WRITE: usize = 64;
+const SYSCALL_RENAME: usize = 82;
+const SYSCALL_MKDIR: usize = 83;
+const SYSCALL_RMDIR: usize = 84;
 const SYSCALL_EXIT: usize = 93;
 const SYSCALL_YIELD: usize = 124;
 const SYSCALL_GET_TIME: usize = 169;
@@ -11,6 +16,7 @@ const SYSCALL_GETPID: usize = 172;
 const SYSCALL_FORK: usize = 220;
 const SYSCALL_EXEC: usize = 221;
 const SYSCALL_WAITPID: usize = 260;
+
 
 fn syscall(id: usize, args: [usize; 3]) -> isize {
     let mut ret: isize;
@@ -34,6 +40,14 @@ pub fn sys_close(fd: usize) -> isize {
     syscall(SYSCALL_CLOSE, [fd, 0, 0])
 }
 
+pub fn sys_delete(path: &str) -> isize {
+    syscall(SYSCALL_DELETE, [path.as_ptr() as usize, 0, 0])
+}
+
+pub fn sys_lseek(fd: usize, offset: isize, whence: usize) -> isize {
+    syscall(SYSCALL_LSEEK, [fd, offset as usize, whence])
+}
+
 pub fn sys_read(fd: usize, buffer: &mut [u8]) -> isize {
     syscall(
         SYSCALL_READ,
@@ -43,6 +57,21 @@ pub fn sys_read(fd: usize, buffer: &mut [u8]) -> isize {
 
 pub fn sys_write(fd: usize, buffer: &[u8]) -> isize {
     syscall(SYSCALL_WRITE, [fd, buffer.as_ptr() as usize, buffer.len()])
+}
+
+pub fn sys_rename(old_path: &str, new_path: &str) -> isize {
+    syscall(
+        SYSCALL_RENAME,
+        [old_path.as_ptr() as usize, new_path.as_ptr() as usize, 0],
+    )
+}
+
+pub fn sys_mkdir(path: &str) -> isize {
+    syscall(SYSCALL_MKDIR, [path.as_ptr() as usize, 0, 0])
+}
+
+pub fn sys_rmdir(path: &str) -> isize {
+    syscall(SYSCALL_RMDIR, [path.as_ptr() as usize, 0, 0])
 }
 
 pub fn sys_exit(exit_code: i32) -> ! {

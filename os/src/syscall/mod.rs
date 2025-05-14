@@ -11,8 +11,13 @@
 //! submodules, and you should also implement syscalls this way.
 const SYSCALL_OPEN: usize = 56;
 const SYSCALL_CLOSE: usize = 57;
+const SYSCALL_DELETE: usize = 58;
+const SYSCALL_LSEEK: usize = 62;
 const SYSCALL_READ: usize = 63;
 const SYSCALL_WRITE: usize = 64;
+const SYSCALL_RENAME: usize = 82;
+const SYSCALL_MKDIR: usize = 83;
+const SYSCALL_RMDIR: usize = 84;
 const SYSCALL_EXIT: usize = 93;
 const SYSCALL_YIELD: usize = 124;
 const SYSCALL_GET_TIME: usize = 169;
@@ -31,8 +36,13 @@ pub fn syscall(syscall_id: usize, args: [usize; 3]) -> isize {
     match syscall_id {
         SYSCALL_OPEN => sys_open(args[0] as *const u8, args[1] as u32),
         SYSCALL_CLOSE => sys_close(args[0]),
+        SYSCALL_DELETE => sys_delete(args[0] as *const u8),
+        SYSCALL_LSEEK => sys_lseek(args[0], args[1] as isize, args[2] as usize),
         SYSCALL_READ => sys_read(args[0], args[1] as *const u8, args[2]),
         SYSCALL_WRITE => sys_write(args[0], args[1] as *const u8, args[2]),
+        SYSCALL_RENAME => sys_rename(args[0] as *const u8, args[1] as *const u8),
+        SYSCALL_MKDIR => sys_mkdir(args[0] as *const u8),
+        SYSCALL_RMDIR => sys_rmdir(args[0] as *const u8),
         SYSCALL_EXIT => sys_exit(args[0] as i32),
         SYSCALL_YIELD => sys_yield(),
         SYSCALL_GET_TIME => sys_get_time(),

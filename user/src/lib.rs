@@ -59,11 +59,26 @@ pub fn open(path: &str, flags: OpenFlags) -> isize {
 pub fn close(fd: usize) -> isize {
     sys_close(fd)
 }
+pub fn delete(path: &str) -> isize {
+    sys_delete(path)
+}
+pub fn lseek(fd: usize, offset: isize, whence: usize) -> isize {
+    sys_lseek(fd, offset, whence)
+}
 pub fn read(fd: usize, buf: &mut [u8]) -> isize {
     sys_read(fd, buf)
 }
 pub fn write(fd: usize, buf: &[u8]) -> isize {
     sys_write(fd, buf)
+}
+pub fn rename(old_path: &str, new_path: &str) -> isize {
+    sys_rename(old_path, new_path)
+}
+pub fn mkdir(path: &str) -> isize {
+    sys_mkdir(path)
+}
+pub fn rmdir(path: &str) -> isize {
+    sys_rmdir(path)
 }
 pub fn exit(exit_code: i32) -> ! {
     sys_exit(exit_code);
