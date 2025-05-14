@@ -10,7 +10,7 @@ pub struct Bitmap {
     blocks: usize,
 }
 
-
+/// Decompose bits into (block_pos, bits64_pos, inner_pos)
 fn decomposition(mut bit: usize) -> (usize, usize, usize) {
     let block_pos = bit / BLOCK_BITS;
     bit %= BLOCK_BITS;
@@ -18,13 +18,14 @@ fn decomposition(mut bit: usize) -> (usize, usize, usize) {
 }
 
 impl Bitmap{
+    /// A new bitmap from start block id and number of blocks
     pub fn new(start_block_id: usize, blocks: usize) -> Self {
         Self {
             start_block_id,
             blocks,
         }
     }
-
+    /// Allocate a new block from a block device
     pub fn alloc(&self, block_device: &Arc<dyn BlockDevice>) -> Option<usize> {
         for block_id in 0..self.blocks {
             let pos = get_block_cache(
@@ -52,7 +53,7 @@ impl Bitmap{
         }
         None
     }
-
+    /// Deallocate a block
     pub fn dealloc(&self, block_device: &Arc<dyn BlockDevice>, bit: usize) {
         let (block_pos, bits64_pos, inner_pos) = decomposition(bit);
         get_block_cache(block_pos + self.start_block_id, Arc::clone(block_device))
@@ -62,7 +63,7 @@ impl Bitmap{
                 bitmap_block[bits64_pos] &= !(1u64 << inner_pos);
             });
     }
-
+    /// Get the max number of allocatable blocks
     pub fn maximum(&self) -> usize {
         self.blocks * BLOCK_BITS
     }

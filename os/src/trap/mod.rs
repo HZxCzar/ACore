@@ -52,7 +52,6 @@ fn set_kernel_trap_entry() {
     //     stvec::write(__alltraps_s as usize - __alltraps_m as usize + TRAMPOLINE, TrapMode::Direct);
     // }
     unsafe {
-        // stvec::write(trap_from_kernel as usize, TrapMode::Direct);
         stvec::write(trap_from_kernel as usize, TrapMode::Direct);
         println!("stvec: {:?}", stvec::read());
     }

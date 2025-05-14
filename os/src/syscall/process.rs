@@ -1,4 +1,5 @@
-use crate::loader::get_app_data_by_name;
+// use crate::loader::get_app_data_by_name;
+use crate::fs::{OpenFlags, open_file};
 use crate::mm::{translated_refmut, translated_str};
 use crate::task::{
     add_task, current_task, current_user_token, exit_current_and_run_next,
@@ -36,21 +37,21 @@ pub fn sys_fork() -> isize {
     trap_cx.x[10] = 0;
     // add new task to scheduler
     add_task(new_task);
-    // println!(
-    //     "[kernel] Forked new task with pid {}",
-    //     new_pid
-    // );
     new_pid as isize
 }
 
 pub fn sys_exec(path: *const u8) -> isize {
     println!("[kernel] exec");
     let token = current_user_token();
-    // println!("token: {:#x}", token);
     let path = translated_str(token, path);
-    if let Some(data) = get_app_data_by_name(path.as_str()) {
+    // if let Some(data) = get_app_data_by_name(path.as_str()) {
+    //     let task = current_task().unwrap();
+    //     task.exec(data);
+    //     0
+    if let Some(app_inode) = open_file(path.as_str(), OpenFlags::RDONLY) {
+        let all_data = app_inode.read_all();
         let task = current_task().unwrap();
-        task.exec(data);
+        task.exec(all_data.as_slice());
         0
     } else {
         -1

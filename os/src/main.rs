@@ -19,10 +19,12 @@ mod mm;
 mod mmod;
 mod config;
 mod loader;
+mod drivers;
 pub mod trap;
 pub mod sync;
 pub mod task;
 pub mod syscall;
+pub mod fs;
 
 // use config::TRAMPOLINE;
 // use riscv::register::mtvec;
@@ -82,18 +84,11 @@ pub fn rust_main() -> ! {
     uart_init();
     mm::init();
     mm::remap_test();
-    task::add_initproc();
-    println!("after initproc!");
     trap::init();
     timer::set_next_trigger();
-    loader::list_apps();
+    fs::list_apps();
+    task::add_initproc();
+    println!("after initproc!");
     task::run_tasks();
-    // println!("准备进入M模式trap处理程序...");
-    // unsafe { core::arch::asm!("ecall"); }  // 添加这一行触发M模式trap
-    // while true {
-        
-    // }
-    // println!("|rust_main|");
-    // task::run_tasks();
     panic!("|program finished|");
 }
