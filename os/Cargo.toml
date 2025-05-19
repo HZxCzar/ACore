@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 volatile = "0.4.6"
-bitflags = "2.4.1"
+bitflags = "1.2.1"
 riscv = { git = "https://github.com/rcore-os/riscv", features = ["inline-asm"] }
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 xmas-elf = "0.7.0"

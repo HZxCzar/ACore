@@ -608,8 +608,6 @@ pub enum MapType {
 }
 
 bitflags! {
-    /// map permission corresponding to that in pte: `R W X U`
-    #[derive(Copy, Clone)]
     pub struct MapPermission: u8 {
         const R = 1 << 1;
         const W = 1 << 2;

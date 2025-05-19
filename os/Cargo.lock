@@ -39,12 +39,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
-name = "bitflags"
-version = "2.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f68f53c83ab957f72c32642f3868eec03eb974d1fb82e453128456482613d36"
-
-[[package]]
 name = "easy-fs"
 version = "0.1.0"
 dependencies = [
@@ -87,7 +81,7 @@ checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
 name = "os"
 version = "0.1.0"
 dependencies = [
- "bitflags 2.8.0",
+ "bitflags",
  "easy-fs",
  "lazy_static",
  "riscv",
@@ -133,7 +127,7 @@ source = "git+https://github.com/rcore-os/riscv#11d43cf7cccb3b62a3caaf3e07a1db74
 dependencies = [
  "bare-metal",
  "bit_field",
- "bitflags 1.3.2",
+ "bitflags",
  "log",
  "riscv-target",
 ]
@@ -198,7 +192,7 @@ name = "virtio-drivers"
 version = "0.1.0"
 source = "git+https://github.com/rcore-os/virtio-drivers?rev=4ee80e5#4ee80e50babd681869f428ee026167bc12dc6856"
 dependencies = [
- "bitflags 1.3.2",
+ "bitflags",
  "log",
  "volatile 0.3.0",
 ]

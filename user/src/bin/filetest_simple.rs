@@ -4,7 +4,7 @@
 #[macro_use]
 extern crate user_lib;
 
-use user_lib::{OpenFlags, close, open, read, write};
+use user_lib::{close, open, read, write, OpenFlags};
 
 #[unsafe(no_mangle)]
 pub fn main() -> i32 {

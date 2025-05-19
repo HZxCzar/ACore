@@ -20,7 +20,8 @@ use crate::config::{TRAMPOLINE, TRAP_CONTEXT};
 use crate::mm::VirtAddr;
 use crate::syscall::syscall;
 use crate::task::{
-    current_trap_cx, current_user_token, exit_current_and_run_next, suspend_current_and_run_next,
+    check_signals_error_of_current, current_add_signal, current_trap_cx, current_user_token,
+    exit_current_and_run_next, handle_signals, suspend_current_and_run_next, SignalFlags,
 };
 use core::arch::{asm, global_asm};
 use riscv::register::{
@@ -72,11 +73,14 @@ pub fn trap_handler_s() -> ! {
     // );
     match scause.cause() {
         Trap::Exception(Exception::UserEnvCall) => {
+           // jump to next instruction anyway
+            let mut cx = current_trap_cx();
             cx.sepc += 4;
-            // if(cx.x[17] == 221){
-            //     println!("a0 = {:#x}, a1 = {:#x}, a2 = {:#x}", cx.x[10], cx.x[11], cx.x[12]);
-            // }
-            cx.x[10] = syscall(cx.x[17], [cx.x[10], cx.x[11], cx.x[12]]) as usize;
+            // get system call return value
+            let result = syscall(cx.x[17], [cx.x[10], cx.x[11], cx.x[12]]);
+            // cx is changed during sys_exec, so we have to call it again
+            cx = current_trap_cx();
+            cx.x[10] = result as usize;
         }
         Trap::Exception(Exception::StorePageFault) => {
             // println!(
@@ -86,28 +90,34 @@ pub fn trap_handler_s() -> ! {
             let fault_addr = VirtAddr(stval::read());
             if !crate::task::handle_cow(fault_addr) {
                 println!("[kernel] StorePageFault in application and not cow");
-                exit_current_and_run_next(-2);
+                current_add_signal(SignalFlags::SIGSEGV);
             }
             // else{
             //     println!("[kernel] StorePageFault in application and cow");
             // }
         }
         Trap::Exception(Exception::StoreFault)
+        | Trap::Exception(Exception::InstructionFault)
+        | Trap::Exception(Exception::InstructionPageFault)
         | Trap::Exception(Exception::LoadFault)
         | Trap::Exception(Exception::LoadPageFault) => {
+            /*
             println!(
-                "[kernel] PageFault in application, bad addr = {:#x}, bad instruction = {:#x}, kernel killed it.",
-                stval, cx.sepc
+                "[kernel] {:?} in application, bad addr = {:#x}, bad instruction = {:#x}, kernel killed it.",
+                scause.cause(),
+                stval,
+                current_trap_cx().sepc,
             );
-            exit_current_and_run_next(-2);
+            */
+            current_add_signal(SignalFlags::SIGSEGV);
         }
         Trap::Exception(Exception::IllegalInstruction) => {
-            println!("[kernel] IllegalInstruction in application, kernel killed it.");
-            println!(
-                "[kernel] bad instruction = {:#x}, bad addr = {:#x}",
-                cx.sepc, stval
-            );
-            exit_current_and_run_next(-3);
+            // println!("[kernel] IllegalInstruction in application, kernel killed it.");
+            // println!(
+            //     "[kernel] bad instruction = {:#x}, bad addr = {:#x}",
+            //     cx.sepc, stval
+            // );
+            current_add_signal(SignalFlags::SIGILL);
         }
         Trap::Interrupt(SupervisorTimer) => {
             println!("|s_timer_interrupt|");
@@ -134,6 +144,11 @@ pub fn trap_handler_s() -> ! {
                 stval
             );
         }
+    }
+    handle_signals();
+    if let Some((errno, msg)) = check_signals_error_of_current() {
+        println!("[kernel] {}", msg);
+        exit_current_and_run_next(errno);
     }
     trap_return_s();
 }
