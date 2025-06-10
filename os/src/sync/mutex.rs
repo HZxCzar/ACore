@@ -1,39 +1,78 @@
-use super::linked_list::LinkedList;
+use crate::mm::linked_list::LinkedList;
 use alloc::alloc::Layout;
-use crate::sync::mutex::SpinMutex;
 use core::alloc::GlobalAlloc;
 use core::cmp::{max, min};
 use core::mem::size_of;
+use core::sync::atomic::{AtomicBool, Ordering};
+use core::cell::UnsafeCell;
 
 const BUDDY_ALLOCATOR_LEVEL: usize = 32;
+
+pub struct SpinMutex<T> {
+    locked: AtomicBool,
+    data: UnsafeCell<T>,
+}
+
+unsafe impl<T: Send> Send for SpinMutex<T> {}
+unsafe impl<T: Send> Sync for SpinMutex<T> {}
+
+impl<T> SpinMutex<T> {
+    pub const fn new(data: T) -> Self {
+        Self {
+            locked: AtomicBool::new(false),
+            data: UnsafeCell::new(data),
+        }
+    }
+
+    pub fn lock(&self) -> SpinMutexGuard<T> {
+        while self.locked.compare_and_swap(false, true, Ordering::Acquire) != false {
+            core::hint::spin_loop();
+        }
+        
+        SpinMutexGuard { mutex: self }
+    }
+}
+
+pub struct SpinMutexGuard<'a, T> {
+    mutex: &'a SpinMutex<T>,
+}
+
+impl<'a, T> core::ops::Deref for SpinMutexGuard<'a, T> {
+    type Target = T;
+    
+    fn deref(&self) -> &Self::Target {
+        unsafe { &*self.mutex.data.get() }
+    }
+}
+
+impl<'a, T> core::ops::DerefMut for SpinMutexGuard<'a, T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { &mut *self.mutex.data.get() }
+    }
+}
+
+impl<'a, T> Drop for SpinMutexGuard<'a, T> {
+    fn drop(&mut self) {
+        self.mutex.locked.store(false, Ordering::Release);
+    }
+}
 
 pub struct LockedHeap {
     pub allocator: SpinMutex<Heap>,
 }
 
 pub struct Heap {
-    /// This array maintains lists of free spaces in different levels.
-    /// Its index corresponds to the power of size.
     free_lists: [LinkedList; BUDDY_ALLOCATOR_LEVEL],
-
-    // /// Granularity is used for the minimum memory space that it can allocate, now use usize.
     gran: usize,
-
-    /// The size of memory that user acquired.
     user: usize,
-
-    /// The size of memory that allocator really allocated.
     allocated: usize,
-
-    /// The total size of memory that allocator can allocate.
     total: usize,
 }
 
-impl Heap{
-    /// Create an empty heap
+impl Heap {
     pub const fn new() -> Self {
         Heap {
-            free_lists: [LinkedList::new(); 32],
+            free_lists: [LinkedList::new(); BUDDY_ALLOCATOR_LEVEL],
             gran: size_of::<usize>(),
             user: 0,
             allocated: 0,
@@ -41,7 +80,6 @@ impl Heap{
         }
     }
 
-    /// Create an empty heap
     pub const fn empty() -> Self {
         Self {
             free_lists: [LinkedList::new(); BUDDY_ALLOCATOR_LEVEL],
@@ -86,15 +124,12 @@ impl Heap{
         );
     }
 
-    /// Deallocate memory according to the address provided.
-    /// It's unsafe because the address given should be the one that buddy allocator provided, otherwise some fatal error might occur.
     pub unsafe fn dealloc(&mut self, ptr: *mut u8, layout: Layout) {
         let size = self.calculate_size(&layout);
         let level = size.trailing_zeros() as usize;
         self.merge(level, ptr);
     }
 
-    /// Split from level start to level end.
     fn split(&mut self, start: usize, end: usize) {
         for i in (start..end).rev() {
             let ptr = self.free_lists[i + 1]
@@ -107,7 +142,6 @@ impl Heap{
         }
     }
 
-    /// Merge from level min with newly added addr.
     fn merge(&mut self, start: usize, ptr: *mut u8) {
         let mut curr = ptr as usize;
         for i in start..self.free_lists.len() {
@@ -128,7 +162,6 @@ impl Heap{
         }
     }
 
-    /// Calculate the supposed size with layout and size.
     fn calculate_size(&self, layout: &Layout) -> usize {
         return max(
             layout.size().next_power_of_two(),
@@ -137,7 +170,6 @@ impl Heap{
     }
 }
 
-
 impl LockedHeap {
     pub const fn empty() -> Self {
         Self {
@@ -145,7 +177,6 @@ impl LockedHeap {
         }
     }
 
-    /// Caller should make sure that memory [start, start+size) is available and not intersected with other segments.
     pub unsafe fn init(&self, start: usize, size: usize) {
         self.allocator.lock().add_segment(start, start+size);
     }

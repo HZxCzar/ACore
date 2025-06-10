@@ -7,7 +7,7 @@
 //! Every task or process has a memory_set to control its virtual memory.
 
 mod address;
-mod linked_list;
+pub mod linked_list;
 mod buddy_allocator;
 mod frame_allocator;
 mod heap_allocator;
