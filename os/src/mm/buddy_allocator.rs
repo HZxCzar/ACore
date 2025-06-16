@@ -12,25 +12,18 @@ pub struct LockedHeap {
 }
 
 pub struct Heap {
-    /// This array maintains lists of free spaces in different levels.
-    /// Its index corresponds to the power of size.
     free_lists: [LinkedList; BUDDY_ALLOCATOR_LEVEL],
 
-    // /// Granularity is used for the minimum memory space that it can allocate, now use usize.
     gran: usize,
 
-    /// The size of memory that user acquired.
     user: usize,
 
-    /// The size of memory that allocator really allocated.
     allocated: usize,
 
-    /// The total size of memory that allocator can allocate.
     total: usize,
 }
 
 impl Heap{
-    /// Create an empty heap
     pub const fn new() -> Self {
         Heap {
             free_lists: [LinkedList::new(); 32],
@@ -41,7 +34,6 @@ impl Heap{
         }
     }
 
-    /// Create an empty heap
     pub const fn empty() -> Self {
         Self {
             free_lists: [LinkedList::new(); BUDDY_ALLOCATOR_LEVEL],
@@ -69,7 +61,6 @@ impl Heap{
         let level = size.trailing_zeros() as usize;
         for i in level..self.free_lists.len() {
             if !self.free_lists[i].is_empty() {
-                // split or no split to find a proper piece
                 self.split(level, i);
                 let result = self.free_lists[level]
                     .pop_front()
@@ -86,15 +77,12 @@ impl Heap{
         );
     }
 
-    /// Deallocate memory according to the address provided.
-    /// It's unsafe because the address given should be the one that buddy allocator provided, otherwise some fatal error might occur.
     pub unsafe fn dealloc(&mut self, ptr: *mut u8, layout: Layout) {
         let size = self.calculate_size(&layout);
         let level = size.trailing_zeros() as usize;
         self.merge(level, ptr);
     }
 
-    /// Split from level start to level end.
     fn split(&mut self, start: usize, end: usize) {
         for i in (start..end).rev() {
             let ptr = self.free_lists[i + 1]
@@ -107,7 +95,6 @@ impl Heap{
         }
     }
 
-    /// Merge from level min with newly added addr.
     fn merge(&mut self, start: usize, ptr: *mut u8) {
         let mut curr = ptr as usize;
         for i in start..self.free_lists.len() {
@@ -128,7 +115,6 @@ impl Heap{
         }
     }
 
-    /// Calculate the supposed size with layout and size.
     fn calculate_size(&self, layout: &Layout) -> usize {
         return max(
             layout.size().next_power_of_two(),
@@ -145,7 +131,6 @@ impl LockedHeap {
         }
     }
 
-    /// Caller should make sure that memory [start, start+size) is available and not intersected with other segments.
     pub unsafe fn init(&self, start: usize, size: usize) {
         self.allocator.lock().add_segment(start, start+size);
     }

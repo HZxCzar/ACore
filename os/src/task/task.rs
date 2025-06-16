@@ -11,13 +11,9 @@ use alloc::sync::{Arc, Weak};
 use alloc::vec;
 use alloc::vec::Vec;
 use core::cell::RefMut;
-
-/// task control block structure
 pub struct TaskControlBlock {
-    // immutable
     pub pid: PidHandle,
     pub kernel_stack: KernelStack,
-    // mutable
     inner: UPSafeCell<TaskControlBlockInner>,
 }
 
@@ -34,23 +30,14 @@ pub struct TaskControlBlockInner {
     pub fd_table: Vec<Option<Arc<dyn File + Send + Sync>>>,
     pub signals: SignalFlags,
     pub signal_mask: SignalFlags,
-    // the signal which is being handling
     pub handling_sig: isize,
-    // Signal actions
     pub signal_actions: SignalActions,
-    // if the task is killed
     pub killed: bool,
-    // if the task is frozen by a signal
     pub frozen: bool,
     pub trap_ctx_backup: Option<TrapContext>,
 }
 
 impl TaskControlBlockInner {
-    /*
-    pub fn get_task_cx_ptr2(&self) -> *const usize {
-        &self.task_cx_ptr as *const usize
-    }
-    */
     pub fn get_trap_cx(&self) -> &'static mut TrapContext {
         self.trap_cx_ppn.get_mut()
     }
@@ -100,11 +87,8 @@ impl TaskControlBlock {
                     children: Vec::new(),
                     exit_code: 0,
                     fd_table: vec![
-                        // 0 -> stdin
                         Some(Arc::new(Stdin)),
-                        // 1 -> stdout
                         Some(Arc::new(Stdout)),
-                        // 2 -> stderr
                         Some(Arc::new(Stdout)),
                     ],
                     signals: SignalFlags::empty(),
@@ -155,14 +139,11 @@ impl TaskControlBlock {
             }
             *translated_refmut(memory_set.token(), p as *mut u8) = 0;
         }
-        // make the user_sp aligned to 8B for k210 platform
         user_sp -= user_sp % core::mem::size_of::<usize>();
 
         let mut inner = self.inner_exclusive_access();
         inner.memory_set = memory_set;
         inner.trap_cx_ppn = trap_cx_ppn;
-        // inner.base_size = user_sp;
-        // let trap_cx = inner.get_trap_cx();
         let mut trap_cx = TrapContext::app_init_context(
             entry_point,
             user_sp,
@@ -177,7 +158,6 @@ impl TaskControlBlock {
     pub fn fork(self: &Arc<TaskControlBlock>) -> Arc<TaskControlBlock> {
         let mut parent_inner = self.inner_exclusive_access();
         let memory_set = MemorySet::from_cow(&mut parent_inner.memory_set);
-        // let memory_set = MemorySet::from_existed_user(&mut parent_inner.memory_set);
         let trap_cx_ppn = memory_set
             .translate(VirtAddr::from(TRAP_CONTEXT).into())
             .unwrap()
@@ -209,7 +189,6 @@ impl TaskControlBlock {
                     exit_code: 0,
                     fd_table: new_fd_table,
                     signals: SignalFlags::empty(),
-                    // inherit the signal_mask and signal_action
                     signal_mask: parent_inner.signal_mask,
                     handling_sig: -1,
                     signal_actions: parent_inner.signal_actions.clone(),

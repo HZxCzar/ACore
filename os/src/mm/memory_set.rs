@@ -30,15 +30,14 @@ unsafe extern "C" {
 }
 
 lazy_static! {
-    /// a memory set instance through lazy_static! managing kernel space
     pub static ref KERNEL_SPACE: Arc<UPSafeCell<MemorySet>> =
         Arc::new(unsafe { UPSafeCell::new(MemorySet::new_kernel()) });
 }
-///Get kernelspace root ppn
+
 pub fn kernel_token() -> usize {
     KERNEL_SPACE.exclusive_access().token()
 }
-/// memory set structure, controls virtual-memory space
+
 pub struct MemorySet {
     page_table: PageTable,
     areas: Vec<MapArea>,
@@ -54,7 +53,7 @@ impl MemorySet {
     pub fn token(&self) -> usize {
         self.page_table.token()
     }
-    /// Assume that no conflicts.
+
     pub fn insert_framed_area(
         &mut self,
         start_va: VirtAddr,
@@ -85,7 +84,7 @@ impl MemorySet {
         }
         self.areas.push(map_area);
     }
-    /// Mention that trampoline is not collected by areas.
+
     fn map_trampoline(&mut self) {
         self.page_table.map(
             VirtAddr::from(TRAMPOLINE).into(),
@@ -97,12 +96,10 @@ impl MemorySet {
         //     println!("TRAMPOLINE物理地址: {:#x}", strampoline as usize);
         // }
     }
-    /// Without kernel stacks.
+
     pub fn new_kernel() -> Self {
         let mut memory_set = Self::new_bare();
-        // map trampoline
         memory_set.map_trampoline();
-        // map kernel sections
         println!(".text [{:#x}, {:#x})", stext as usize, etext as usize);
         println!(".rodata [{:#x}, {:#x})", srodata as usize, erodata as usize);
         println!(".data [{:#x}, {:#x})", sdata as usize, edata as usize);
@@ -206,13 +203,10 @@ impl MemorySet {
         }
         memory_set
     }
-    /// Include sections in elf and trampoline and TrapContext and user stack,
-    /// also returns user_sp and entry point.
+
     pub fn from_elf(elf_data: &[u8]) -> (Self, usize, usize) {
         let mut memory_set = Self::new_bare();
-        // map trampoline
         memory_set.map_trampoline();
-        // map program headers of elf, with U flag
         let elf = xmas_elf::ElfFile::new(elf_data).unwrap();
         let elf_header = elf.header;
         let magic = elf_header.pt1.magic;
@@ -243,10 +237,8 @@ impl MemorySet {
                 );
             }
         }
-        // map user stack with U flags
         let max_end_va: VirtAddr = max_end_vpn.into();
         let mut user_stack_bottom: usize = max_end_va.into();
-        // guard page
         user_stack_bottom += PAGE_SIZE;
         let user_stack_top = user_stack_bottom + USER_STACK_SIZE;
         memory_set.push(
@@ -258,7 +250,7 @@ impl MemorySet {
             ),
             None,
         );
-        // map TrapContext
+        // TrapContext
         memory_set.push(
             MapArea::new(
                 TRAP_CONTEXT.into(),
@@ -470,7 +462,6 @@ impl MemorySet {
     }
 }
 
-/// map area structure, controls a contiguous piece of virtual memory
 pub struct MapArea {
     vpn_range: VPNRange,
     data_frames: BTreeMap<VirtPageNum, FrameTracker>,
@@ -575,8 +566,7 @@ impl MapArea {
         }
         self.vpn_range = VPNRange::new(self.vpn_range.get_start(), new_end);
     }
-    /// data: start-aligned but maybe with shorter length
-    /// assume that all frames were cleared before
+
     pub fn copy_data(&mut self, page_table: &PageTable, data: &[u8]) {
         assert_eq!(self.map_type, MapType::Framed);
         let mut start: usize = 0;
@@ -600,7 +590,6 @@ impl MapArea {
 }
 
 #[derive(Copy, Clone, PartialEq, Debug)]
-/// map type for memory set: identical or framed
 pub enum MapType {
     Identical,
     Framed,

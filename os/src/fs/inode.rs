@@ -1,9 +1,3 @@
-//! `Arc<Inode>` -> `OSInodeInner`: In order to open files concurrently
-//! we need to wrap `Inode` into `Arc`,but `Mutex` in `Inode` prevents
-//! file systems from being accessed simultaneously
-//!
-//! `UPSafeCell<OSInodeInner>` -> `OSInode`: for static `ROOT_INODE`,we
-//! need to wrap `OSInodeInner` into `UPSafeCell`
 use super::File;
 use crate::drivers::BLOCK_DEVICE;
 use crate::mm::UserBuffer;
@@ -14,8 +8,7 @@ use bitflags::*;
 use core::any::Any;
 use easy_fs::{EasyFileSystem, Inode};
 use lazy_static::*;
-/// A wrapper around a filesystem inode
-/// to implement File trait atop
+/// Wrapper
 pub struct OSInode {
     readable: bool,
     writable: bool,
@@ -71,22 +64,15 @@ pub fn list_apps() {
 bitflags! {
     ///Open file flags
     pub struct OpenFlags: u32 {
-        ///Read only
         const RDONLY = 0;
-        ///Write only
         const WRONLY = 1 << 0;
-        ///Read & Write
         const RDWR = 1 << 1;
-        ///Allow create
         const CREATE = 1 << 9;
-        ///Clear file and return an empty one
         const TRUNC = 1 << 10;
    }
 }
 
 impl OpenFlags {
-    /// Do not check validity for simplicity
-    /// Return (readable, writable)
     pub fn read_write(&self) -> (bool, bool) {
         if self.is_empty() {
             (true, false)
@@ -130,7 +116,6 @@ pub fn open_file(path: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
             return None;
         }
         if let Some(inode) = find_inode(path) {
-            // exist, clear it
             inode.clear();
             Some(Arc::new(OSInode::new(readable, writable, inode)))
         } else if let Some(parent_inode) = find_inode(parent_path) {
@@ -197,10 +182,10 @@ pub fn remove_dir(path: &str) -> bool {
     }
     if let Some(parent_inode) = find_inode(parent_path) {
         if let Some(dir_inode) = parent_inode.find(name) {
-            // 1. 判断是不是目录（必须！）
+            // 1. 判断是不是目录
             let is_dir = dir_inode.is_dir();
             if !is_dir {
-                return false; // 不是目录，不能用 rmdir
+                return false; // 不是目录
             }
             // 2. 判断目录是否为空
             let file_list = dir_inode.ls();
@@ -217,7 +202,6 @@ pub fn remove_dir(path: &str) -> bool {
 }
 
 /// 移动/重命名文件或目录（不覆盖，不跨文件系统）
-/// old_path -> new_path
 pub fn rename_file_or_dir(old_path: &str, new_path: &str) -> bool {
     // 路径分割
     let (old_parent_path, old_name) = if let Some(pos) = old_path.rfind('/') {

@@ -12,15 +12,11 @@ impl LinkedList {
         LinkedList { head: null_mut() }
     }
 
-    /// Push an element to the front of the linked list.
-    ///
-    /// This function is unsafe because user has to guarantee that *node is a legal pointer.
     pub unsafe fn push_front(&mut self, node: *mut usize) {
         *node = self.head as usize;
         self.head = node;
     }
 
-    /// Pop the first element of the linked list. Return `None` when the linked list is empty.
     pub fn pop_front(&mut self) -> Option<*mut usize> {
         return if !self.is_empty() {
             let result = self.head;
@@ -31,7 +27,6 @@ impl LinkedList {
         };
     }
 
-    /// Check whether the linked list is empty.
     pub fn is_empty(&self) -> bool {
         self.head.is_null()
     }

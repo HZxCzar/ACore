@@ -1,5 +1,3 @@
-//! Constants used in rCore for qemu
-
 pub const CLOCK_FREQ: usize = 10000000;
 pub const MEMORY_END: usize = 0x8800_0000;
 
