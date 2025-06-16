@@ -192,7 +192,7 @@ pub fn remove_dir(path: &str) -> bool {
             if !file_list.is_empty() {
                 return false; // 目录非空
             }
-            // 3. 执行 unlink
+            // 3. 执行
             return parent_inode.delete_entry(name);
         } else {
             return false;
